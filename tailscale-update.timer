@@ -1,0 +1,11 @@
+[Unit]
+Description="🪐 Tailscale Updater"
+Documentation=https://tailscale.com/
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=24h
+Unit=tailscale-update.service
+
+[Install]
+WantedBy=multi-user.target

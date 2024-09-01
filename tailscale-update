@@ -1,0 +1,63 @@
+#!/bin/bash
+
+set -e
+
+EXIT_NODE_IP="100.79.101.78"
+CURRENT_VERSION=$(tailscale version | awk 'NR == 1 { printf $0 }')
+
+function msg {
+    echo -e "🪐 \x1b[0;96m$@\x1b[0m"
+}
+
+
+function connect_as_client {
+    local host
+
+    msg "Disable exit node server"
+    tailscale set --advertise-exit-node=false
+    sleep 5
+
+    host=$(tailscale exit-node suggest | awk 'NR==1{printf gensub(/^Suggested exit node:\s+/, "", "g", $0)}')
+
+    msg "Connect as client use best node: $host"
+    tailscale set --exit-node="$host"
+}
+
+function start_exit_node {
+    echo -e "Disconnect client"
+    tailscale set --exit-node=
+
+    echo -e "Run exit node"
+    tailscale set --advertise-exit-node
+}
+
+
+function get_latest_version {
+    local version
+    version=$(tailscale version --upstream | \
+    awk 'NR > 1 { if ($0 ~ /upstream:/) { printf gensub(/^[ ]+upstream:\s+/, "", "g", $0) }}')
+
+    echo -e "$version"
+}
+
+function update {
+    echo -e "Upgrade system package"
+    apt-get update
+    apt-get -y upgrade
+    echo -e "System upgraded"
+}
+
+connect_as_client "$EXIT_NODE_IP"
+
+sleep 5
+
+LATEST_VERSION=$(get_latest_version)
+
+if [ "$CURRENT_VERSION" == "$LATEST_VERSION" ]; then
+    echo -e "Latest version installed already $LATEST_VERSION"
+else
+    echo -e "Tailscale need update $CURRENT_VERSION -> $LATEST_VERSION"
+    update
+fi
+
+start_exit_node
