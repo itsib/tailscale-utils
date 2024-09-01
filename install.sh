@@ -1,5 +1,6 @@
 #!/bin/bash
 
+WORKDIR=$( cd "$(dirname "$0")" && pwd )
 SERVICES_PATH="/etc/systemd/system"
 BIN_PATH="/usr/sbin"
 
@@ -34,20 +35,27 @@ function root_check {
     fi
 }
 
+function check {
+  if [[ -n "$1" ]]; then
+      msg e "$1"
+      exit 1
+  fi
+}
+
 function install_service {
-    msg i "Update the system files"
-    cp tailscale-update.service "$SERVICES_PATH/tailscale-update.service"
-    cp tailscale-update.timer "$SERVICES_PATH/tailscale-update.timer"
-    cp tailscale-update "$BIN_PATH/tailscale-update"
+    msg i "Updating the system files"
+    check "$(cp "$WORKDIR/tailscale-update.service" "$SERVICES_PATH/tailscale-update.service" 2>&1)"
+    check "$(cp "$WORKDIR/tailscale-update.timer" "$SERVICES_PATH/tailscale-update.timer" 2>&1)"
+    check "$(cp "$WORKDIR/tailscale-update" "$BIN_PATH/tailscale-update" 2>&1)"
     msg s "System files updated"
 
     msg i "Verify installation"
-    systemd-analyze verify /etc/systemd/system/tailscale-update.*
+    check "$(systemd-analyze verify /etc/systemd/system/tailscale-update.* 2>&1)"
     msg s "Installation verified"
 
     msg i "Enabling & starting services"
-    systemctl --quiet enable tailscale-update.timer
-    systemctl --quiet start tailscale-update.timer
+    check "$(systemctl --quiet enable tailscale-update.timer 2>&1)"
+    check "$(systemctl --quiet start tailscale-update.timer)"
     msg s "Services are running"
 
     msg s "The installation is complete\n"
@@ -96,7 +104,7 @@ function remove_service {
 
 root_check
 
-msg "🪐 Tailscale: $1"
+msg "🪐 Tailscale updater: $1"
 
 if [ "$1" == "install" ]; then
     install_service

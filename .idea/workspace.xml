@@ -5,12 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1d1436f3-c182-4f58-9a50-727ed804d0eb" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/test" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/install.sh" beforeDir="false" afterPath="$PROJECT_DIR$/install.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tailscale-update" beforeDir="false" afterPath="$PROJECT_DIR$/tailscale-update" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tailscale-update.service" beforeDir="false" afterPath="$PROJECT_DIR$/tailscale-update.service" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,7 +55,7 @@
       <updated>1725171078591</updated>
       <workItem from="1725171080710" duration="15000" />
       <workItem from="1725171592979" duration="161000" />
-      <workItem from="1725171759341" duration="22292000" />
+      <workItem from="1725171759341" duration="23925000" />
     </task>
     <servers />
   </component>
