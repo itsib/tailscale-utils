@@ -1,63 +1,139 @@
 #!/bin/bash
 
-set -e
-
-EXIT_NODE_IP="100.79.101.78"
 CURRENT_VERSION=$(tailscale version | awk 'NR == 1 { printf $0 }')
+LATEST_VERSION=
+BYPASS_ATTEMPT=
+IS_SERVER=$(tailscale whois "$(tailscale ip --1)" | awk '$1 == "Tags:"{ printf ($0 ~ "tag:exit") ? "1" : "0" }')
+IS_USER=$(tailscale whois "$(tailscale ip --1)" | awk '$1 == "Tags:"{ printf ($0 ~ "tag:user") ? "1" : "0" }')
 
 function msg {
-    echo -e "🪐 \x1b[0;96m$@\x1b[0m"
+    echo -e "\x1b[0;96m🪐 $1\x1b[0m"
 }
 
-
-function connect_as_client {
-    local host
-
-    msg "Disable exit node server"
-    tailscale set --advertise-exit-node=false
-    sleep 5
-
-    host=$(tailscale exit-node suggest | awk 'NR==1{printf gensub(/^Suggested exit node:\s+/, "", "g", $0)}')
-
-    msg "Connect as client use best node: $host"
-    tailscale set --exit-node="$host"
+function err {
+    echo -e "\x1b[0;91m🗶 $1\x1b[0m"
 }
 
-function start_exit_node {
-    echo -e "Disconnect client"
-    tailscale set --exit-node=
+# This machine is user or exit
+function is {
+  local result tag
+  tag="tag:$1"
 
-    echo -e "Run exit node"
-    tailscale set --advertise-exit-node
+  result=$(tailscale whois "$(tailscale ip --1)" | awk -v tag="$tag" '$1 == "Tags:"{ printf ($0 ~ tag) ? "1" : "0" }')
+
+  echo "$result"
 }
 
+# Try to fetch latest version, blocked - "451 Unavailable For Legal Reasons"
+function get_last_version() {
+    local result
 
-function get_latest_version {
-    local version
-    version=$(tailscale version --upstream | \
-    awk 'NR > 1 { if ($0 ~ /upstream:/) { printf gensub(/^[ ]+upstream:\s+/, "", "g", $0) }}')
-
-    echo -e "$version"
+    result=$(tailscale version --upstream 2>&1)
+    if [[ "$result" =~ 451 ]]; then
+        echo "blocked"
+    else
+        echo "$result" | awk 'NR > 1 { if ($0 ~ /upstream:/) { printf gensub(/^[ ]+upstream:\s+/, "", "g", $0) }}'
+    fi
 }
 
+# Run tailscale if not running
+function ensure_running() {
+    local result
+    result=$(tailscale status)
+    if [[ "$result" =~ stopped ]]; then
+        tailscale up
+    fi
+}
+
+# Search best exit node to bypass
+# Should be node with tag:bypass
+function find_node_to_bypass() {
+    local exit_ip ip is_bypass
+
+    while read -r line
+    do
+        ip=$(echo "$line" | grep -Pom 1 '[0-9.]{7,15}')
+        if [[ -z "$ip" ]]; then
+            continue
+        fi
+
+        is_bypass=$(tailscale whois "$ip" | awk '$1 == "Tags:"{ printf ($0 ~ "tag:bypass") ? "1" : "0" }')
+        if [ "$is_bypass" == "1" ]; then
+            exit_ip="$ip"
+            break
+        fi
+    done < <(tailscale exit-node list)
+
+    echo "$exit_ip"
+}
+
+# Connect trough other exit node as client
+function before_update {
+    local exit_node is_exit
+
+    ensure_running
+
+    LATEST_VERSION=$(get_last_version)
+    if [ "$LATEST_VERSION" == "blocked" ]; then
+        msg "I get 451 error, try to bypass"
+
+        BYPASS_ATTEMPT="1"
+
+        # Disable exit node server
+        is_exit=$(is "exit")
+        if [ "$is_exit" == "1" ]; then
+            msg "Disable exit node server"
+            tailscale set --advertise-exit-node=false
+            sleep 5
+        fi
+
+        # Find exit node to bypass 451 lock
+        exit_node=$(find_node_to_bypass)
+        if [ -z "$exit_node" ]; then
+            err "The update server is blocked 451 error.\n   Exit nodes for bypass not found"
+            exit 1
+        fi
+
+        msg "Connect as client use best node: $exit_node"
+        tailscale set --exit-node="$exit_node"
+
+        sleep 5
+
+        LATEST_VERSION=$(get_last_version)
+    fi
+
+    if [ "$LATEST_VERSION" == "blocked" ]; then
+        err "Cannot get latest tailscale version"
+        exit 1
+    fi
+}
+
+# Run exit node
+function after_update {
+    if [ "$BYPASS_ATTEMPT" == "1" ] && [ "$(is "exit")" == "1" ]; then
+        msg "Disconnect exit node client"
+        tailscale set --exit-node=
+
+        msg "Run exit node server"
+        tailscale set --advertise-exit-node
+    fi
+}
+
+# Update system
 function update {
-    echo -e "Upgrade system package"
-    apt-get update
-    apt-get -y upgrade
-    echo -e "System upgraded"
+    msg "Upgrade system package"
+    apt-get --quiet update
+    apt-get --quiet --yes upgrade
+    msg "System upgraded"
 }
 
-connect_as_client "$EXIT_NODE_IP"
-
-sleep 5
-
-LATEST_VERSION=$(get_latest_version)
+before_update
 
 if [ "$CURRENT_VERSION" == "$LATEST_VERSION" ]; then
-    echo -e "Latest version installed already $LATEST_VERSION"
+    msg "Now installed latest version $LATEST_VERSION"
 else
-    echo -e "Tailscale need update $CURRENT_VERSION -> $LATEST_VERSION"
+    msg "Found new version $CURRENT_VERSION -> $LATEST_VERSION"
     update
 fi
 
-start_exit_node
+after_update

@@ -1,7 +1,6 @@
 [Unit]
-Description="🪐 Tailscale Updater Service"
+Description="🪐 Tailscale Updater"
 Documentation=https://tailscale.com/
-#After=tailscaled.service
 
 [Service]
 Type=simple
