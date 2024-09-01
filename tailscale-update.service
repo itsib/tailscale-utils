@@ -1,6 +1,6 @@
 [Unit]
-Description="🪐 Tailscale Updater"
-Documentation=https://tailscale.com/
+Description="🪐 Tailscale Updater Service"
+Documentation=https://github.com/itsib/tailscale-utils/blob/master/README.md
 
 [Service]
 Type=simple
