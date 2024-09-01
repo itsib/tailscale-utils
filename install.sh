@@ -43,6 +43,8 @@ function check {
 }
 
 function install_service {
+    local os_ver
+
     msg i "Updating the system files"
     check "$(cp "$WORKDIR/tailscale-update.service" "$SERVICES_PATH/tailscale-update.service" 2>&1)"
     check "$(cp "$WORKDIR/tailscale-update.timer" "$SERVICES_PATH/tailscale-update.timer" 2>&1)"
@@ -50,9 +52,11 @@ function install_service {
     msg s "System files updated"
 
     msg i "Verify installation"
-    check "$(systemd-analyze verify /etc/systemd/system/tailscale-update.* 2>&1)"
-    msg s "Installation verified"
-
+    os_ver=$(lsb_release -sr 2>/dev/null | awk '{ printf substr($1, 1, 2) }')
+    if [[ "${os_ver}" -gt 16 ]]; then
+        check "$(systemd-analyze verify /etc/systemd/system/tailscale-update.* 2>&1)"
+        msg s "Installation verified"
+    fi
     msg i "Enabling & starting services"
     check "$(systemctl --quiet enable tailscale-update.timer 2>&1)"
     check "$(systemctl --quiet start tailscale-update.timer)"
