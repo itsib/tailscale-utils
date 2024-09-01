@@ -51,9 +51,9 @@ function install_service {
     check "$(cp "$WORKDIR/tailscale-update" "$BIN_PATH/tailscale-update" 2>&1)"
     msg s "System files updated"
 
-    msg i "Verify installation"
     os_ver=$(lsb_release -sr 2>/dev/null | awk '{ printf substr($1, 1, 2) }')
-    if [[ "${os_ver}" -gt 16 ]]; then
+    if [[ "${os_ver}" -gt 18 ]]; then
+        msg i "Verify installation"
         check "$(systemd-analyze verify /etc/systemd/system/tailscale-update.* 2>&1)"
         msg s "Installation verified"
     fi
