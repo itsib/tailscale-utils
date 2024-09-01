@@ -35,6 +35,13 @@ function root_check {
     fi
 }
 
+function check_deps() {
+    if [ ! "$(which gawk 2> /dev/null)" ]; then
+        msg e "Package gawk not installed. To install 'apt install gawk'"
+        exit 1
+    fi
+}
+
 function check {
   if [[ -n "$1" ]]; then
       msg e "$1"
@@ -57,6 +64,7 @@ function install_service {
         check "$(systemd-analyze verify /etc/systemd/system/tailscale-update.* 2>&1)"
         msg s "Installation verified"
     fi
+
     msg i "Enabling & starting services"
     check "$(systemctl --quiet enable tailscale-update.timer 2>&1)"
     check "$(systemctl --quiet start tailscale-update.timer)"
@@ -107,6 +115,7 @@ function remove_service {
 }
 
 root_check
+check_deps
 
 msg "🪐 Tailscale updater: $1"
 
