@@ -6,8 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="1d1436f3-c182-4f58-9a50-727ed804d0eb" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/install.sh" beforeDir="false" afterPath="$PROJECT_DIR$/install.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tailscale-update" beforeDir="false" afterPath="$PROJECT_DIR$/tailscale-update" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,7 +40,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-7c0b70fcd90d-JavaScript-WS-242.21829.149" />
+        <option value="bundled-js-predefined-d6986cc7102b-410509235cf1-JavaScript-PY-242.20224.347" />
+        <option value="bundled-python-sdk-c2d6afa66fbe-39cff9de6eef-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-242.20224.347" />
       </set>
     </attachedChunks>
   </component>
@@ -58,7 +57,8 @@
       <workItem from="1725171592979" duration="161000" />
       <workItem from="1725171759341" duration="23925000" />
       <workItem from="1725199633869" duration="3586000" />
-      <workItem from="1725205559557" duration="256000" />
+      <workItem from="1725205559557" duration="1087000" />
+      <workItem from="1726042938705" duration="309000" />
     </task>
     <servers />
   </component>
